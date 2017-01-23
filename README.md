@@ -12,12 +12,14 @@ machine we would like the program to run ahead of time. If we have too many
 jobs pending, this would likely to clog the slurm scheduler.
 
 Usage scenario 1:
-You have several hundreds set of hyperparameters to run cross validation, but
+You have several a hundred sets of hyperparameters to run cross validation, but
 you only have limited resources within a large computational cluster. You would
 like to parallel the jobs with a maximum factor, and run all the jobs in a
 queue. You would also like to define job dependencies so that the
 hyperparameter the your next set of experiments can come from the best ones
 chosen from the current set of experiments.
+
+Check out multi_job_example.py for this usage scenario.
 
 Usage scenario 2:
 You have 100K images to run through conv-net. And after each image is done, you
@@ -26,6 +28,10 @@ the stages in a bash script, you would like to run a dynamic pipeline that
 constantly process your data in a parallel, continuous fashion, under resource
 constraints.
 
+Examples for this usage scenario will come out soon.
+
 Usage scenario 3:
 You want to launch an evaluation job every few hours of training. But you would
 like the scheduler to automatically choose a cluster to run.
+
+Checkout single_job_example.py for this usage scenario.

@@ -24,29 +24,30 @@ import time
 import traceback
 
 from slurm import SlurmCommandDispatcherFactory
-from job import LocalCommandDispatcherFactory
+from local import LocalCommandDispatcherFactory
 import logger
 log = logger.get()
 
 LOCAL = True  # Whether use local dispatcher or slurm dispatcher.
 MIN_INTERVAL = 5  # How much time in second to relaunch another job.
-CMD = ["sleep", "10"]  # The command to be launched.
+CMD = ["sleep", "3"]  # The command to be launched.
 
 if LOCAL:
   dispatch_factory = LocalCommandDispatcherFactory()
 else:
   dispatch_factory = SlurmCommandDispatcherFactory()
 
-if FLAGS.id is None:
-  raise Exception("You need to specify model ID.")
 while True:
   try:
     start_time = time.time()
     dispatcher = dispatch_factory.create(num_gpu=1, num_cpu=2)
     job = dispatcher.dispatch(CMD)
+    log.info("Launching \"{}\"".format(CMD))
     code = job.wait()
     if code != 0:
-      log.error("Job failed")
+      log.error("Job failed.")
+    else:
+      log.info("Job finished.")
   except Exception as e:
     log.error("An exception occurred.")
     log.error(e)
