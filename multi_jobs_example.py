@@ -17,19 +17,12 @@ Usage:
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
-import os
-import time
-
-from job import (JobRequest, JobSource, JobScheduler, Pipeline, PipelineStage,
-                 JobPool, get_context)
+from job import JobRequest, JobScheduler, Pipeline
 from slurm import SlurmJobRunnerFactory
 from local import LocalJobRunnerFactory
-import logger
-
-log = logger.get()
 
 
-def init_pipeline(max_num_jobs=4, scheduler="slurm"):
+def init_pipeline(max_num_jobs, scheduler):
   if scheduler == "slurm":
     sched = JobScheduler(
         "scheduler", SlurmJobRunnerFactory(), max_num_jobs=max_num_jobs)
