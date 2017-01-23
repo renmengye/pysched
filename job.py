@@ -1,3 +1,8 @@
+"""
+Author: Mengye Ren (mren@cs.toronto.edu)
+
+Basic utilities of job scheduling.
+"""
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
@@ -18,18 +23,16 @@ log = logger.get()
 class JobRequest(object):
   """Job request object."""
 
-  def __init__(self, executable, config, environ):
-    self.executable = executable
-    self.config = config
-    self.environ = environ
+  def __init__(self, cmd_args, job_id=None):
+    self.cmd_args = cmd_args
+    self.job_id = job_id
 
 
 class JobResults(object):
   """Job results object."""
 
-  def __init__(self, config, environ, success):
-    self.config = config
-    self.environ = environ
+  def __init__(self, success, job_id=None):
+    self.job_id = job_id
     self.success = success
 
 
@@ -39,36 +42,6 @@ class TimeSeriesResults(object):
   def __init__(self, filename, data):
     self.filename = filename
     self.data = data
-
-
-class TimeSeriesEntry(object):
-  """Time-series entry."""
-
-  def __init__(self, step, time, value):
-    self.step = step
-    self.time = time
-    self.value = value
-
-
-class TimeSeriesParser(object):
-  """Time-series data parser."""
-
-  def parse(self, file, label):
-    with open(file, "r") as f:
-      lines = [ll.strip("\n") for ll in f.readlines()]
-    col = lines[0].split(",")
-    col_dict = dict((col[ii], ii) for ii in range(len(col)))
-    step_idx = col_dict["step"]
-    time_idx = col_dict["time"]
-    value_idx = col_dict[label]
-    data = []
-    for ll in lines[1:]:
-      parts = ll.split(",")
-      step = int(parts[step_idx])
-      time = datetime.datetime.strptime(parts[time_idx], "%Y-%m-%dT%H:%M:%S.%f")
-      val = float(parts[value_idx])
-      data.append(TimeSeriesEntry(step, time, val))
-    return TimeSeriesResults(file, data)
 
 
 class CommandDispatcher(object):
@@ -96,44 +69,16 @@ class CommandDispatcher(object):
     return job
 
 
-class LocalCommandDispatcher(CommandDispatcher):
-
-  def __init__(self, gpu_id=0):
-    self._gpu_id = gpu_id
-
-  @property
-  def gpu_id(self):
-    return self._gpu_id
-
-  def get_pipes(self, stdout_file):
-    """Launch a new job."""
-    stdout = open(stdout_file, "w")
-    return stdout
-
-  def finalize(self):
-    self.stdout.close()
-
-  def get_env(self):
-    env = os.environ.copy()
-    env["CUDA_VISIBLE_DEVICES"] = str(self.gpu_id)
-    return env
-
-  def get_exec_command(self, args, stdout_file=None):
-    return args
-
-
 class JobRunner(threading.Thread):
 
   def __init__(self,
                request,
                dispatcher,
+               stdout_file=None,
                result_queue=None,
                resource_queue=None):
     """
     Args:
-        config: Job model config object.
-        environ: Job environment object.
-        machine: Machine name.
     """
     super(JobRunner, self).__init__()
     self.daemon = True
@@ -142,9 +87,7 @@ class JobRunner(threading.Thread):
     self._results = None
     self._result_queue = result_queue
     self._resource_queue = resource_queue
-    self.config_file = "../tmp/{}.conf.json".format(self.environ.exp_id)
-    self.env_file = "../tmp/{}.env.json".format(self.environ.exp_id)
-    self.stdout_file = "../tmp/{}.log".format(self.environ.exp_id)
+    self._stdout_file = stdout_file
     pass
 
   @property
@@ -154,14 +97,6 @@ class JobRunner(threading.Thread):
   @property
   def dispatcher(self):
     return self._dispatcher
-
-  @property
-  def config(self):
-    return self._request.config
-
-  @property
-  def environ(self):
-    return self._request.environ
 
   @property
   def result_queue(self):
@@ -175,91 +110,35 @@ class JobRunner(threading.Thread):
   def results(self):
     return self._results
 
+  @property
+  def stdout_file(self):
+    return self._stdout_file
+
   def launch(self):
     """Launch a new job."""
-    if not os.path.exists("../tmp"):
-      os.makedirs("../tmp")
-    with open(self.config_file, "w") as f:
-      f.write(self.config.to_json())
-
-    with open(self.env_file, "w") as f:
-      f.write(self.environ.to_json())
-
-    log.info("Job \"{}\" launched".format(self.environ.exp_id), verbose=2)
+    log.info("Job \"{}\" launched".format(self.request.job_id))
     return self.dispatcher.dispatch(
-        [
-            self.request.executable, "--config", self.config_file, "--env",
-            self.env_file
-        ],
-        stdout_file=self.stdout_file)
+        self.request.cmd_args, stdout_file=self.stdout_file)
 
   def finalize(self):
     pass
 
   def run(self):
-    start_time = time.time()
-    log.info("Job \"{}\" ({}) started.".format(self.environ.exp_id,
-                                               self.environ.description))
     job = self.launch()
     code = job.wait()
     success = code == 0
-    results = JobResults(self.config, self.environ, success)
+    results = JobResults(success, job_id=self.request.job_id)
     if not success:
-      log.error("Job \"{}\" ({}) failed".format(self.environ.exp_id,
-                                                self.environ.description))
+      log.error("Job \"{}\" failed".format(self.request.job_id))
+    else:
+      log.info("Job \"{}\" finished".format(self.request.job_id), verbose=2)
     if self.result_queue is not None:
       self.result_queue.put(results)
     self._results = results
     self.finalize()
     if self.resource_queue is not None:
       self.resource_queue.get()
-    end_time = time.time()
-    log.info("Job \"{}\" ({}) finished in {}.".format(
-        self.environ.exp_id, self.environ.description,
-        TimeElapsedFormatter().format(int(end_time - start_time))))
     pass
-
-
-class LocalJobRunnerFactory(object):
-  """Creates a new LocalJobRunner."""
-
-  def create(self, request, result_queue, resource_queue):
-    return JobRunner(request,
-                     LocalCommandDispatcher(request.environ.gpu), result_queue,
-                     resource_queue)
-
-
-class LocalCommandDispatcherFactory(object):
-  """Creates a new LocalJobRunner."""
-
-  def create(self, num_gpu=0, num_cpu=2):
-    return LocalCommandDispatcher(num_gpu)
-
-
-class TimeElapsedFormatter(object):
-
-  def format(self, num_sec):
-    num_day = 0
-    num_hr = 0
-    num_min = 0
-    ss = []
-    if num_sec >= 60:
-      num_min = num_sec // 60
-      num_sec = num_sec % 60
-    if num_min >= 60:
-      num_hr = num_min // 60
-      num_min = num_min % 60
-    if num_hr >= 24:
-      num_day = num_hr // 24
-      num_hr = num_hr % 24
-    if num_day > 0:
-      ss.append("{:d}d".format(num_day))
-    if num_hr > 0 or num_day > 0:
-      ss.append("{:d}h".format(num_hr))
-    if num_min > 0 or num_hr > 0 or num_day > 0:
-      ss.append("{:d}m".format(num_min))
-    ss.append("{:d}s".format(num_sec))
-    return " ".join(ss)
 
 
 class Pipeline(threading.Thread):
@@ -269,6 +148,7 @@ class Pipeline(threading.Thread):
     self._stages = []
     self._source = None
     self._is_started = False
+    self._is_finished = False
     self.daemon = True
     self._results = []
     self._job_table = {}
@@ -313,7 +193,7 @@ class Pipeline(threading.Thread):
   def add_job(self, job_request, callback=None):
     self.source.add(job_request)
     job = Job(job_request, callback=callback)
-    self.job_table[job_request.environ.exp_id] = job
+    self.job_table[job_request.job_id] = job
     job.start()
     return job
 
@@ -331,18 +211,21 @@ class Pipeline(threading.Thread):
   def is_started(self):
     return self._is_started
 
-  def wait_for_timeout(self, timeout=400000):
-    # Temporary hack.
-    # Just wait for a timeout.
-    if self.is_started:
-      time.sleep(timeout)
-      self.finalize_requests()
-      self.join()
-    pass
+  @property
+  def is_finished(self):
+    return self._is_finished
+
+  def wait(self):
+    while not self.is_finished:
+      time.sleep(10)  # Check back every 10 seconds.
+
+  def finalize(self):
+    self._is_finished = True
+    self.finalize_requests()
+    self.join()
 
   def run(self):
     self._is_started = True
-    start_time = time.time()
     for ss in self.stages:
       ss.start()
     try:
@@ -351,7 +234,7 @@ class Pipeline(threading.Thread):
         if item is None:
           break
         else:
-          job = self.job_table[item.environ.exp_id]
+          job = self.job_table[item.job_id]
           job.stop(item)
     except Exception as e:
       log.error("An exception occurred.")
@@ -369,9 +252,6 @@ class Pipeline(threading.Thread):
       ss.join()
     for jp in self.job_pools:
       jp.join()
-    end_time = time.time()
-    log.info("Pipeline finished in {}.".format(TimeElapsedFormatter().format(
-        int(end_time - start_time))))
     pass
 
 
@@ -404,7 +284,6 @@ class PipelineStage(threading.Thread):
     self.output_queue.put(None)
 
   def run(self):
-    start_time = time.time()
     try:
       while True:
         inp = self.input_queue.get()
@@ -423,9 +302,6 @@ class PipelineStage(threading.Thread):
       traceback.print_exception(
           exc_type, exc_value, exc_traceback, limit=10, file=sys.stdout)
     self.finalize()
-    end_time = time.time()
-    log.info("Pipeline stage \"{}\" finished in {}.".format(
-        self.name, TimeElapsedFormatter().format(int(end_time - start_time))))
 
   def do(self, inp):
     raise Exception("Not implemented")

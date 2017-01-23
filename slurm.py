@@ -1,3 +1,8 @@
+"""
+Author: Mengye Ren (mren@cs.toronto.edu)
+
+Logics and interfaces to dispatch jobs on slurm.
+"""
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
@@ -69,6 +74,26 @@ class MachineSpec(object):
 class SlurmCommandDispatcherFactory(object):
   """Creates a new SlurmJobRunner."""
 
+  def __init__(self, priority_config=None):
+    """
+    Args:
+      priority_config: A dictionary specifies the priority and number of GPU of
+      each machine.
+    """
+    if priority_config is None:
+      self.priority_config = {
+          "cluster57": [MachineSpec("dgx1", 10, 8)],
+          "cluster58": [
+              MachineSpec("guppy6", 1, 4), MachineSpec("guppy8", 1, 4),
+              MachineSpec("guppy9", 1, 4), MachineSpec("guppy10", 3, 4),
+              MachineSpec("guppy13", 3, 4), MachineSpec("guppy14", 3, 4),
+              MachineSpec("guppy15", 3, 4), MachineSpec("guppy16", 3, 4),
+              MachineSpec("guppy17", 3, 4)
+          ]
+      }
+    else:
+      self.priority_config = priority_config
+
   def select_machine(self):
     machine_state_dict = {}
     slurm_info = subprocess.check_output(["sinfo"])
@@ -125,18 +150,7 @@ class SlurmCommandDispatcherFactory(object):
         machine_count[machine] += num_gpu
 
     hostname = socket.gethostname()
-    if hostname == "cluster57":
-      mm_list = [MachineSpec("dgx1", 10, 8)]
-    elif hostname == "cluster58":
-      mm_list = [
-          MachineSpec("guppy6", 1, 4), MachineSpec("guppy8", 1, 4),
-          MachineSpec("guppy9", 1, 4), MachineSpec("guppy10", 3, 4),
-          MachineSpec("guppy13", 3, 4), MachineSpec("guppy14", 3, 4),
-          MachineSpec("guppy15", 3, 4), MachineSpec("guppy16", 3, 4),
-          MachineSpec("guppy17", 3, 4)
-      ]
-    else:
-      raise Exception("Invalid host \"{}\"".format(hostname))
+    mm_list = self.priority_conf[hostname]
 
     count_arr = []
     down_machines = machine_state_dict[
@@ -166,13 +180,14 @@ class SlurmCommandDispatcherFactory(object):
 
 class SlurmJobRunnerFactory(object):
 
-  def create(self, request, result_queue, resource_queue):
+  def create(self, request, result_queue, resource_queue, stdout_file=None):
     return JobRunner(
         request,
         SlurmCommandDispatcherFactory().create(
             num_gpu=request.environ.num_gpu, num_cpu=2),
-        result_queue,
-        resource_queue)
+        result_queue=result_queue,
+        resource_queue=resource_queue,
+        stdout_file=stdout_file)
 
 
 if __name__ == "__main__":

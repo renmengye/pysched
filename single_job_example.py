@@ -1,4 +1,7 @@
+#!/usr/bin/python
 """
+Author: Mengye Ren (mren@cs.toronto.edu)
+
 Example of using job scheduler of a single job. This is useful for evaluating
 networks during training, where the evaluation only needs to happen every few
 hours, and we can release the GPU resource while it is not running. The program
@@ -13,7 +16,6 @@ Usage:
   code = job.wait()
 """
 
-#!/usr/bin/python
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
