@@ -84,11 +84,17 @@ class SlurmCommandDispatcherFactory(object):
       self.priority_config = {
           "cluster57": [MachineSpec("dgx1", 10, 8)],
           "cluster58": [
-              MachineSpec("guppy6", 1, 4), MachineSpec("guppy8", 1, 4),
-              MachineSpec("guppy9", 1, 4), MachineSpec("guppy10", 3, 4),
-              MachineSpec("guppy13", 3, 4), MachineSpec("guppy14", 3, 4),
-              MachineSpec("guppy15", 3, 4), MachineSpec("guppy16", 3, 4),
-              MachineSpec("guppy17", 3, 4)
+              MachineSpec("guppy6", 1, 4),
+              MachineSpec("guppy8", 1, 4),
+              MachineSpec("guppy9", 1, 4),
+              MachineSpec("guppy10", 3, 4),
+              MachineSpec("guppy13", 3, 4),
+              MachineSpec("guppy14", 3, 4),
+              MachineSpec("guppy15", 3, 4),
+              MachineSpec("guppy16", 3, 4),
+              MachineSpec("guppy17", 3, 4),
+              MachineSpec("guppy18", 3, 4),
+              MachineSpec("guppy19", 3, 4),
           ]
       }
     else:
