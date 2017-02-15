@@ -11,7 +11,7 @@ know about the schedule condition in the future, it is hard to specify the
 machine we would like the program to run ahead of time. If we have too many
 jobs pending, this would likely to clog the slurm scheduler.
 
-Usage scenario 1:
+## Job Parallelization
 You have several a hundred sets of hyperparameters to run cross validation, but
 you only have limited resources within a large computational cluster. You would
 like to parallel the jobs with a maximum factor, and run all the jobs in a
@@ -21,7 +21,7 @@ chosen from the current set of experiments.
 
 Check out multi_job_example.py for this usage scenario.
 
-Usage scenario 2:
+## Pipeline Automation
 You have 100K images to run through conv-net. And after each image is done, you
 have more post-processing stages. Instead launching individual jobs, or define 
 the stages in a bash script, you would like to run a dynamic pipeline that
@@ -30,7 +30,7 @@ constraints.
 
 Examples for this usage scenario will come out soon.
 
-Usage scenario 3:
+## Launching Recurring Jobs
 You want to launch an evaluation job every few hours of training. But you would
 like the scheduler to automatically choose a cluster to run.
 
