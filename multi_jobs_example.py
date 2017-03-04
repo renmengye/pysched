@@ -39,7 +39,9 @@ def run_multi_jobs(pipeline, callback=None):
   job_list = []
   for param in param_list:
     # A dummy job is to sleep from 1 to 9 seconds
-    job = pipeline.add_job(JobRequest(["sleep", str(param)], job_id=param))
+    job = pipeline.add_job(
+        JobRequest(
+            ["sleep", str(param)], num_gpu=0, num_cpu=1, job_id=param))
     job_list.append(job)
   return pipeline.add_job_pool(job_list, callback=callback)
 

@@ -23,8 +23,10 @@ log = logger.get()
 class JobRequest(object):
   """Job request object."""
 
-  def __init__(self, cmd_args, job_id=None):
+  def __init__(self, cmd_args, num_gpu=1, num_cpu=2, job_id=None):
     self.cmd_args = cmd_args
+    self.num_gpu = num_gpu
+    self.num_cpu = num_cpu
     self.job_id = job_id
 
 

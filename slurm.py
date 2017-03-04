@@ -190,7 +190,7 @@ class SlurmJobRunnerFactory(object):
     return JobRunner(
         request,
         SlurmCommandDispatcherFactory().create(
-            num_gpu=request.environ.num_gpu, num_cpu=2),
+            num_gpu=request.num_gpu, num_cpu=request.num_cpu),
         result_queue=result_queue,
         resource_queue=resource_queue,
         stdout_file=stdout_file)
