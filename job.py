@@ -316,7 +316,7 @@ class Job(threading.Thread):
     self.daemon = True
     self._result = None
     self._request = request
-    self._stop = threading.Event()
+    self._stopper = threading.Event()
     self._callback = callback
 
   @property
@@ -333,10 +333,10 @@ class Job(threading.Thread):
 
   def stop(self, result):
     self._result = result
-    self._stop.set()
+    self._stopper.set()
 
   def stopped(self):
-    return self._stop.isSet()
+    return self._stopper.isSet()
 
   def set_result(self, val):
     self._result = val
