@@ -17,6 +17,8 @@ Usage:
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
+import time
+
 from job import JobRequest, JobScheduler, Pipeline
 from slurm import SlurmJobRunnerFactory
 from local import LocalJobRunnerFactory
@@ -48,6 +50,7 @@ def run_multi_jobs(pipeline, callback=None):
             job_id=param,
             stdout_file="job_{}.txt".format(param)))
     job_list.append(job)
+    time.sleep(2)
   return pipeline.add_job_pool(job_list, callback=callback)
 
 
