@@ -14,8 +14,11 @@ import sys
 import threading
 import time
 import traceback
-import Queue
-
+is_py2 = sys.version[0] == '2'
+if is_py2:
+    import Queue as queue
+else:
+    import queue as queue
 import logger
 log = logger.get()
 
@@ -268,7 +271,7 @@ class PipelineStage(threading.Thread):
 
   def __init__(self, name):
     super(PipelineStage, self).__init__()
-    self._output_queue = Queue.Queue()
+    self._output_queue = queue.Queue()
     self._input_queue = None
     self._name = name
     self.daemon = True
@@ -397,7 +400,7 @@ class JobScheduler(PipelineStage):
 
   def __init__(self, name, job_runner_factory, max_num_jobs=4):
     super(JobScheduler, self).__init__(name)
-    self._resource_queue = Queue.Queue(maxsize=max_num_jobs)
+    self._resource_queue = queue.Queue(maxsize=max_num_jobs)
     self._factory = job_runner_factory
     self._runners = []
     pass
