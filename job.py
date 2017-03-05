@@ -23,11 +23,17 @@ log = logger.get()
 class JobRequest(object):
   """Job request object."""
 
-  def __init__(self, cmd_args, num_gpu=1, num_cpu=2, job_id=None):
+  def __init__(self,
+               cmd_args,
+               num_gpu=1,
+               num_cpu=2,
+               stdout_file=None,
+               job_id=None):
     self.cmd_args = cmd_args
     self.num_gpu = num_gpu
     self.num_cpu = num_cpu
     self.job_id = job_id
+    self.stdout_file = stdout_file
 
 
 class JobResults(object):
@@ -139,6 +145,7 @@ class JobRunner(threading.Thread):
     self._results = results
     self.finalize()
     if self.resource_queue is not None:
+      # print("get", self.resource_queue.qsize())
       self.resource_queue.get()
     pass
 
@@ -409,8 +416,12 @@ class JobScheduler(PipelineStage):
 
   def do(self, inp):
     self.resource_queue.put(1)
+    # print("put", self.resource_queue.qsize())
     runner = self.factory.create(
-        inp, result_queue=self.output_queue, resource_queue=self.resource_queue)
+        inp,
+        result_queue=self.output_queue,
+        resource_queue=self.resource_queue,
+        stdout_file=inp.stdout_file)
     runner.start()
     self.runners.append(runner)
 

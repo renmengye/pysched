@@ -29,7 +29,6 @@ class LocalCommandDispatcher(CommandDispatcher):
     if stdout_file is None:
       return None
     else:
-      print(stdout_file)
       stdout = open(stdout_file, "w")
       return stdout
 

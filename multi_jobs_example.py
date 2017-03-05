@@ -35,13 +35,18 @@ def init_pipeline(max_num_jobs, scheduler):
 
 
 def run_multi_jobs(pipeline, callback=None):
-  param_list = range(1, 10)
+  param_list = range(10, 15)
   job_list = []
   for param in param_list:
     # A dummy job is to sleep from 1 to 9 seconds
     job = pipeline.add_job(
         JobRequest(
-            ["sleep", str(param)], num_gpu=0, num_cpu=1, job_id=param))
+            # ["sleep", str(param)],
+            ["echo", "Hello world {}".format(param)],
+            num_gpu=0,
+            num_cpu=1,
+            job_id=param,
+            stdout_file="job_{}.txt".format(param)))
     job_list.append(job)
   return pipeline.add_job_pool(job_list, callback=callback)
 
