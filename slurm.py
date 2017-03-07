@@ -12,8 +12,8 @@ import re
 import socket
 import subprocess
 
-from job import JobRunner, CommandDispatcher
-import logger
+from pysched.job import JobRunner, CommandDispatcher
+from pysched import logger
 
 log = logger.get()
 
