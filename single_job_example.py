@@ -23,9 +23,9 @@ import sys
 import time
 import traceback
 
-from slurm import SlurmCommandDispatcherFactory
-from local import LocalCommandDispatcherFactory
-import logger
+from pysched.slurm import SlurmCommandDispatcherFactory
+from pysched.local import LocalCommandDispatcherFactory
+from pysched import logger
 log = logger.get()
 
 LOCAL = True  # Whether use local dispatcher or slurm dispatcher.
