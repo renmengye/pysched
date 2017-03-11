@@ -41,11 +41,11 @@ class SlurmCommandDispatcher(CommandDispatcher):
 
   def get_env(self):
     env = os.environ.copy()
-    env["LD_LIBRARY_PATH"] = "/pkgs/cuda-8.0/lib64:/pkgs/cudnn-7.5:" + \
-        env["LD_LIBRARY_PATH"]
-    env["PYTHONPATH"] = "/pkgs/tensorflow-gpu-cuda8-11Oct2016:" + \
-        env["PYTHONPATH"]
-    env["CUDA_HOME"] = "/pkgs/cuda-8.0"
+    # env["LD_LIBRARY_PATH"] = "/pkgs/cuda-8.0/lib64:/pkgs/cudnn-7.5:" + \
+    #     env["LD_LIBRARY_PATH"]
+    # env["PYTHONPATH"] = "/pkgs/tensorflow-gpu-cuda8-11Oct2016:" + \
+    #     env["PYTHONPATH"]
+    # env["CUDA_HOME"] = "/pkgs/cuda-8.0"
     return env
 
   def get_exec_command(self, args, stdout_file=None):
@@ -148,15 +148,19 @@ class SlurmCommandDispatcherFactory(object):
         continue
       machine = m2.group(1)
       m = re.search("Gres=gpu:(\d)", job_info)
-      num_gpu = int(m.group(1))
-      log.info("Machine \"{}\" GPU {}".format(machine, num_gpu))
-      if machine not in machine_count:
-        machine_count[machine] = num_gpu
+      if m is not None:
+        num_gpu = int(m.group(1))
+        log.info("Machine \"{}\" GPU {}".format(machine, num_gpu))
+        if machine not in machine_count:
+          machine_count[machine] = num_gpu
+        else:
+          machine_count[machine] += num_gpu
       else:
-        machine_count[machine] += num_gpu
+        if machine not in machine_count:
+          machine_count[machine] = 0
 
     hostname = socket.gethostname()
-    mm_list = self.priority_conf[hostname]
+    mm_list = self.priority_config[hostname]
 
     count_arr = []
     down_machines = machine_state_dict[
