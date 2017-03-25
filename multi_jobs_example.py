@@ -19,9 +19,9 @@ from __future__ import (absolute_import, division, print_function,
 
 import time
 
-from job import JobRequest, JobScheduler, Pipeline
-from slurm import SlurmJobRunnerFactory
-from local import LocalJobRunnerFactory
+from pysched.job import JobRequest, JobScheduler, Pipeline
+from pysched.slurm import SlurmJobRunnerFactory
+from pysched.local import LocalJobRunnerFactory
 
 
 def init_pipeline(max_num_jobs, scheduler):

@@ -9,8 +9,8 @@ from __future__ import (absolute_import, division, print_function,
 
 import os
 
-from job import JobRunner, CommandDispatcher
-import logger
+from pysched.job import JobRunner, CommandDispatcher
+from pysched import logger
 
 log = logger.get()
 
