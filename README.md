@@ -11,6 +11,11 @@ know about the schedule condition in the future, it is hard to specify the
 machine we would like the program to run ahead of time. If we have too many
 jobs pending, this would likely to clog the slurm scheduler.
 
+## Setup
+```bash
+git clone --recursive git@github.com:renmengye/pysched.git
+```
+
 ## Job Parallelization
 You have several a hundred sets of hyperparameters to run cross validation, but
 you only have limited resources within a large computational cluster. You would
@@ -19,7 +24,7 @@ queue. You would also like to define job dependencies so that the
 hyperparameter the your next set of experiments can come from the best ones
 chosen from the current set of experiments.
 
-Check out multi_job_example.py for this usage scenario.
+Check out `multi_job_example.py` for this usage scenario.
 
 ## Pipeline Automation
 You have 100K images to run through conv-net. And after each image is done, you
@@ -34,4 +39,4 @@ Examples for this usage scenario will come out soon.
 You want to launch an evaluation job every few hours of training. But you would
 like the scheduler to automatically choose a cluster to run.
 
-Checkout single_job_example.py for this usage scenario.
+Checkout `single_job_example.py` for this usage scenario.

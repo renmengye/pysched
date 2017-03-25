@@ -1,0 +1,3 @@
+[submodule "pyschedlib"]
+	path = pyschedlib
+	url = git@github.com:renmengye/pyschedlib.git

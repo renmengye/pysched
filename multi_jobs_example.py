@@ -55,7 +55,7 @@ def run_multi_jobs(pipeline, callback=None):
 
 
 def main():
-  pipeline = init_pipeline(max_num_jobs=3, scheduler="local")
+  pipeline = init_pipeline(max_num_jobs=3, scheduler="slurm")
   run_multi_jobs(pipeline, callback=lambda results: pipeline.finalize())
   pipeline.wait()
 
