@@ -1,0 +1,20 @@
+{
+  "cluster57": [
+    {"name": "dgx1", "priority": 10, "num_gpu": 8}
+  ],
+  "cluster58": [
+    {"name": "guppy6",  "priority":  1, "num_gpu": 4 },
+    {"name": "guppy8",  "priority":  1, "num_gpu": 4 },
+    {"name": "guppy9",  "priority":  1, "num_gpu": 4 },
+    {"name": "guppy10", "priority":  3, "num_gpu": 4 },
+    {"name": "guppy13", "priority":  3, "num_gpu": 4 },
+    {"name": "guppy14", "priority":  3, "num_gpu": 4 },
+    {"name": "guppy15", "priority":  3, "num_gpu": 4 },
+    {"name": "guppy16", "priority":  3, "num_gpu": 4 },
+    {"name": "guppy17", "priority":  3, "num_gpu": 4 },
+    {"name": "guppy18", "priority":  5, "num_gpu": 4 },
+    {"name": "guppy19", "priority":  5, "num_gpu": 4 },
+    {"name": "guppy20", "priority":  5, "num_gpu": 4 },
+    {"name": "guppy21", "priority":  5, "num_gpu": 4 },
+  ]
+}

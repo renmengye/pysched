@@ -74,31 +74,15 @@ class MachineSpec(object):
 class SlurmCommandDispatcherFactory(object):
   """Creates a new SlurmJobRunner."""
 
-  def __init__(self, priority_config=None):
+  def __init__(self, slurm_config_file=None):
     """
     Args:
       priority_config: A dictionary specifies the priority and number of GPU of
       each machine.
     """
-    if priority_config is None:
-      self.priority_config = {
-          "cluster57": [MachineSpec("dgx1", 10, 8)],
-          "cluster58": [
-              MachineSpec("guppy6", 1, 4),
-              MachineSpec("guppy8", 1, 4),
-              MachineSpec("guppy9", 1, 4),
-              MachineSpec("guppy10", 3, 4),
-              MachineSpec("guppy13", 3, 4),
-              MachineSpec("guppy14", 3, 4),
-              MachineSpec("guppy15", 3, 4),
-              MachineSpec("guppy16", 3, 4),
-              MachineSpec("guppy17", 3, 4),
-              MachineSpec("guppy18", 3, 4),
-              MachineSpec("guppy19", 3, 4),
-          ]
-      }
-    else:
-      self.priority_config = priority_config
+    if slurm_config_file is None:
+      slurm_config_file = "slurm_config.json"
+    self.slurm_config = json.load(open(priority_config_file, "r"))
 
   def select_machine(self):
     machine_state_dict = {}
@@ -156,20 +140,20 @@ class SlurmCommandDispatcherFactory(object):
         machine_count[machine] += num_gpu
 
     hostname = socket.gethostname()
-    mm_list = self.priority_conf[hostname]
+    mm_list = self.slurm_config[hostname]
 
     count_arr = []
     down_machines = machine_state_dict[
         "down*"] if "down*" in machine_state_dict else []
     log.info("Down machines {}".format(down_machines))
     for jj, mm in enumerate(mm_list):
-      if mm.name in down_machines:
-        mm.priority = -10000
-      if mm.name in machine_count:
-        free_gpu = mm.num_gpu - machine_count[mm.name]
+      if mm["name"] in down_machines:
+        mm["priority"] = -10000
+      if mm["name"] in machine_count:
+        free_gpu = mm["num_gpu"] - machine_count[mm["name"]]
       else:
-        free_gpu = mm.num_gpu
-      count_arr.append((mm, (free_gpu) * mm.priority))
+        free_gpu = mm["num_gpu"]
+      count_arr.append((mm, (free_gpu) * mm["priority"]))
     weight_list = np.array([cc[1] for cc in count_arr])
     if weight_list.max() > 0:
       count_idx = np.argmax(weight_list)
